@@ -6,7 +6,8 @@ PREFIX="/usr/local"
 LIB_DIR="$PREFIX/lib/serjou"
 BIN_DIR="$PREFIX/bin"
 
-MANIFEST_URL="$BASE_URL/internal/scripts_list.yml"
+MANIFEST_URL="$BASE_URL/internal/scripts_list.sh"
+MANIFEST_PATH="$LIB_DIR/manifest.sh"
 
 echo "[serjou] Installing toolset"
 
@@ -25,54 +26,58 @@ fi
 mkdir -p "$LIB_DIR"
 mkdir -p "$BIN_DIR"
 
-# --- download manifest -------------------------------------
+mkdir -p "$LIB_DIR" "$BIN_DIR"
 
 echo "[serjou] Fetching manifest"
-MANIFEST="$(curl -fsSL "$MANIFEST_URL")"
+curl -fsSL "$MANIFEST_URL" -o "$MANIFEST_PATH"
 
-# --- helper to parse yaml (VERY minimal, intentional) ------
-
-get_entries() {
-  local section="$1"
-  echo "$MANIFEST" \
-    | awk "/^$section:/{flag=1;next}/^[^ ]/{flag=0}flag" \
-    | sed 's/^  //' \
-    | sed 's/:/ /' \
-    | awk 'NF == 2'
-}
-
+# shellcheck source=/dev/null
+source "$MANIFEST_PATH"
 
 # --- install CLI -------------------------------------------
 
 echo "[serjou] Installing CLI"
 
-while read -r name path; do
-  echo "installing $BASE_URL/$path"
+for entry in "${CLI_COMMANDS[@]}"; do
+  name="${entry%%:*}"
+  path="${entry##*:}"
+
+  echo "  → $name"
   curl -fsSL "$BASE_URL/$path" -o "$BIN_DIR/$name"
   chmod +x "$BIN_DIR/$name"
-done < <(get_entries cli)
+done
 
 # --- install installers ------------------------------------
 
 echo "[serjou] Installing installers"
 
-while read -r name path; do
+for entry in "${INSTALLERS[@]}"; do
+  name="${entry%%:*}"
+  path="${entry##*:}"
+
   target="$LIB_DIR/$path"
   mkdir -p "$(dirname "$target")"
+
+  echo "  → $name"
   curl -fsSL "$BASE_URL/$path" -o "$target"
   chmod +x "$target"
-done < <(get_entries installers)
+done
 
 # --- install set commands ----------------------------------
 
 echo "[serjou] Installing set commands"
 
-while read -r name path; do
+for entry in "${SET_COMMANDS[@]}"; do
+  name="${entry%%:*}"
+  path="${entry##*:}"
+
   target="$LIB_DIR/$path"
   mkdir -p "$(dirname "$target")"
+
+  echo "  → $name"
   curl -fsSL "$BASE_URL/$path" -o "$target"
   chmod +x "$target"
-done < <(get_entries set)
+done
 
 echo "[serjou] Done"
 echo "Run: serjou -h"
