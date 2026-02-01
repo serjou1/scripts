@@ -45,6 +45,7 @@ get_entries() {
 echo "[serjou] Installing CLI"
 
 while read -r name path; do
+  echo "installing $BASE_URL/$path"
   curl -fsSL "$BASE_URL/$path" -o "$BIN_DIR/$name"
   chmod +x "$BIN_DIR/$name"
 done < <(get_entries cli)
