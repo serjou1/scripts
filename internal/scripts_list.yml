@@ -1,0 +1,8 @@
+cli:
+  serjou: serjou.sh
+
+installers:
+  docker: installers/docker.sh
+
+set:
+  loki: set/loki.sh
