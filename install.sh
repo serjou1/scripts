@@ -37,8 +37,10 @@ get_entries() {
   echo "$MANIFEST" \
     | awk "/^$section:/{flag=1;next}/^[^ ]/{flag=0}flag" \
     | sed 's/^  //' \
-    | sed 's/:/ /'
+    | sed 's/:/ /' \
+    | awk 'NF == 2'
 }
+
 
 # --- install CLI -------------------------------------------
 
