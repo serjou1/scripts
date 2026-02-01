@@ -60,9 +60,9 @@ EOF
 # start/restart promtail
 cd "$PROMTAIL_DIR"
 if docker ps -a --format '{{.Names}}' | grep -q '^promtail$'; then
-    docker-compose down
+    docker compose down
 fi
 
-docker-compose up -d
+docker compose up -d
 
 echo "[serjou] promtail started with job_name=$job_name"
