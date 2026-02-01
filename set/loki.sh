@@ -1,57 +1,68 @@
-#!/bin/bash
-# loki.sh — setup Promtail to collect PM2 logs and push to Loki
-# Usage: ./loki.sh Server-01
-
+#!/usr/bin/env bash
 set -e
 
-# Check for job name
-if [ -z "$1" ]; then
-  echo "Usage: $0 <job_name>"
-  exit 1
-fi
+PROMTAIL_DIR="$HOME/serjou-loki"
+mkdir -p "$PROMTAIL_DIR"
 
-JOB_NAME="$1"
+# defaults
+pm2=false
+job_name="system"
 
-# Paths
-PROMTAIL_CONFIG="./promtail-config.yaml"
-PM2_LOG_DIR="$HOME/.pm2/logs"
-POSITION_FILE="/tmp/positions.yaml"
+# parse flags
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --pm2) pm2=true; shift ;;
+        --job_name) job_name="$2"; shift 2 ;;
+        *) echo "[serjou] Unknown flag $1"; exit 1 ;;
+    esac
+done
 
-# Loki endpoint
-LOKI_URL="https://loki.serjou.dev/loki/api/v1/push"
+echo "[serjou] pm2 enabled: $pm2"
+echo "[serjou] job_name: $job_name"
 
-# Create Promtail config
-cat > "$PROMTAIL_CONFIG" <<EOF
+# generate promtail config
+cat > "$PROMTAIL_DIR/promtail-config.yaml" <<EOF
 server:
+  log_level: debug
   http_listen_port: 9080
   grpc_listen_port: 0
-  log_level: debug
 
 positions:
-  filename: $POSITION_FILE
+  filename: /tmp/positions.yaml
 
 clients:
-  - url: $LOKI_URL
+  - url: https://loki.serjou.dev/loki/api/v1/push
 
 scrape_configs:
-  - job_name: $JOB_NAME
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: $JOB_NAME
-          __path__: $PM2_LOG_DIR/*.log
+- job_name: system
+  static_configs:
+  - targets:
+      - "localhost"
+    labels:
+      job: "$job_name"
+      __path__: "/root/.pm2/logs/*.log"
 EOF
 
-echo "✅ Promtail config created at $PROMTAIL_CONFIG with job name: $JOB_NAME"
+# generate docker-compose.yml
+cat > "$PROMTAIL_DIR/docker-compose.yml" <<EOF
+version: '3'
+services:
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - $PROMTAIL_DIR/promtail-config.yaml:/etc/promtail/config.yml
+      - /var/log:/var/log
+      - /root/.pm2/logs:/root/.pm2/logs
+    command: -config.file=/etc/promtail/config.yml
+EOF
 
-# Check if docker-compose service exists
-if ! docker-compose ps promtail &>/dev/null; then
-  echo "ℹ️  Promtail service not found in docker-compose. Starting..."
-  docker-compose up -d promtail
-else
-  echo "ℹ️  Promtail service already exists, restarting..."
-  docker-compose restart promtail
+# start/restart promtail
+cd "$PROMTAIL_DIR"
+if docker ps -a --format '{{.Names}}' | grep -q '^promtail$'; then
+    docker-compose down
 fi
 
-echo "🎉 Promtail is running and collecting logs from $PM2_LOG_DIR under job: $JOB_NAME"
+docker-compose up -d
+
+echo "[serjou] promtail started with job_name=$job_name"
