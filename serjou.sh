@@ -25,10 +25,14 @@ case "$cmd" in
     help
     ;;
   install)
-    exec "$LIB/installers/$1.sh" "$@"
+    tool="$1"
+    shift || true
+    exec "$LIB/installers/$tool.sh" "$@"
     ;;
   set)
-    exec "$LIB/set/$1.sh" "$@"
+    tool="$1"
+    shift || true
+    exec "$LIB/set/$tool.sh" "$@"
     ;;
   *)
     echo "Unknown command: $cmd"
