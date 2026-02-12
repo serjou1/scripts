@@ -62,11 +62,32 @@ echo "Installing Go $GOVERSION to $INSTALL_DIR"
 $SUDO rm -rf "$INSTALL_DIR/go"
 $SUDO tar -C "$INSTALL_DIR" -xzf "$TMPDIR/$TARBALL"
 
-cat <<'EOF'
-Go installed.
+# Automatically add Go to PATH in shell profiles
+SHELL_PROFILES=("$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.bash_profile" "$HOME/.zsh_profile")
+GO_PATH_LINE='export PATH="$PATH:/usr/local/go/bin"'
 
-Add to your shell profile if needed:
-	export PATH="$PATH:/usr/local/go/bin"
+for profile in "${SHELL_PROFILES[@]}"; do
+	if [[ -f "$profile" ]] && ! grep -q "/usr/local/go/bin" "$profile"; then
+		echo "$GO_PATH_LINE" >> "$profile"
+		echo "Added Go to $profile"
+	fi
+done
+
+# Source the current shell profile to update PATH immediately
+if [[ -n "${SHELL:-}" ]]; then
+	CURRENT_PROFILE=""
+	case "$SHELL" in
+		*zsh) CURRENT_PROFILE="$HOME/.zshrc" ;;
+		*bash) CURRENT_PROFILE="$HOME/.bashrc" ;;
+	esac
+	if [[ -f "$CURRENT_PROFILE" ]]; then
+		# shellcheck disable=SC1090
+		source "$CURRENT_PROFILE"
+	fi
+fi
+
+cat <<'EOF'
+Go installed and PATH configured.
 
 Verify:
 	go version
