@@ -7,6 +7,7 @@ CLI_COMMANDS=(
 
 INSTALLERS=(
   docker:installers/docker.sh
+  go:installers/go.sh
 )
 
 SET_COMMANDS=(
