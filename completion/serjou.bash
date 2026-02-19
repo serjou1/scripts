@@ -30,4 +30,10 @@ _serjou() {
   fi
 }
 
-complete -F _serjou serjou
+if [[ -n "${ZSH_VERSION:-}" ]]; then
+  autoload -Uz bashcompinit
+  bashcompinit
+  complete -F _serjou serjou
+elif [[ -n "${BASH_VERSION:-}" ]]; then
+  complete -F _serjou serjou
+fi
