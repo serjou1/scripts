@@ -10,10 +10,12 @@ serjou — server toolset
 Commands:
   install <tool>
   set <tool>
+  update
 
 Examples:
   serjou install docker
   serjou set loki --pm2
+  serjou update
 EOF
 }
 
@@ -33,6 +35,9 @@ case "$cmd" in
     tool="$1"
     shift || true
     exec "$LIB/set/$tool.sh" "$@"
+    ;;
+  update)
+    exec bash -c 'curl -fsSL https://serjou.dev/install | bash'
     ;;
   *)
     echo "Unknown command: $cmd"

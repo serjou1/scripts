@@ -10,7 +10,7 @@ _serjou() {
   source "$MANIFEST"
 
   if [[ $COMP_CWORD -eq 1 ]]; then
-    COMPREPLY=( $(compgen -W "install set" -- "$cur") )
+    COMPREPLY=( $(compgen -W "install set update" -- "$cur") )
     return
   fi
 
