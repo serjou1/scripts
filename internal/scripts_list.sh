@@ -9,6 +9,7 @@ INSTALLERS=(
   docker:installers/docker.sh
   go:installers/go.sh
   git:installers/git.sh
+  redis:installers/redis.sh
 )
 
 SET_COMMANDS=(
