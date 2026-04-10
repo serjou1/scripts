@@ -11,6 +11,7 @@ INSTALLERS=(
   git:installers/git.sh
   node:installers/node.sh
   redis:installers/redis.sh
+  rust:installers/rust.sh
 )
 
 SET_COMMANDS=(
