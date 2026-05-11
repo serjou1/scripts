@@ -9,6 +9,7 @@ INSTALLERS=(
   docker:installers/docker.sh
   go:installers/go.sh
   git:installers/git.sh
+  nginx:installers/nginx.sh
   node:installers/node.sh
   redis:installers/redis.sh
   rust:installers/rust.sh
