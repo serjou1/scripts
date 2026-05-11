@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# nvm's scripts reference unbound variables, so we avoid `set -u` globally
+# and only enable strict failure modes.
+set -eo pipefail
 
 echo "[serjou][node] Installing Node.js LTS via nvm"
 
@@ -38,7 +40,6 @@ fi
 
 nvm install --lts
 nvm alias default 'lts/*'
-nvm use --lts
 
 if command -v node >/dev/null 2>&1; then
 	echo "[serjou][node] Installed successfully: $(node -v)"
